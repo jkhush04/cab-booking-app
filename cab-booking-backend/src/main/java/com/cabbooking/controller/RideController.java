@@ -43,4 +43,10 @@ public class RideController {
         return rideService.getRide(id, auth.getName());
     }
 
+
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('RIDER')")
+    public RideResponse cancel(@PathVariable Long id, Authentication auth) {
+        return rideService.cancel(id, auth.getName());
+    }
 }

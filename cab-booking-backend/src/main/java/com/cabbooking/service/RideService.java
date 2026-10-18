@@ -9,7 +9,7 @@ import com.cabbooking.entity.User;
 import com.cabbooking.exception.ResourceNotFoundException;
 import com.cabbooking.repository.RideRepository;
 import com.cabbooking.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +55,7 @@ public class RideService {
 
         }
 
-        @Transactional
+        @Transactional(readOnly = true)
         public List<RideResponse> myRides(String riderEmail){
             User rider=userRepository.findByEmail(riderEmail)
                     .orElseThrow(()->new ResourceNotFoundException("User with email "+riderEmail+" not found"));
@@ -64,7 +64,7 @@ public class RideService {
                     .toList();
         }
 
-        @Transactional
+        @Transactional(readOnly = true)
         public RideResponse getRide(Long id, String email){
               Ride ride=rideRepository.findById(id)
                     .orElseThrow(()->new ResourceNotFoundException("Ride with id "+id+" not found"));
@@ -77,4 +77,22 @@ public class RideService {
               }
               return RideResponse.from(ride);
         }
+
+
+    @Transactional
+    public RideResponse cancel(Long id, String email) {
+        Ride ride = rideRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ride not found"));
+        if (!ride.getRider().getEmail().equals(email)) {
+            throw new ResourceNotFoundException("Ride not found");
+        }
+        if (ride.getStatus() != RideStatus.REQUESTED && ride.getStatus() != RideStatus.ACCEPTED) {
+            throw new IllegalArgumentException("Ride cannot be cancelled now");
+        }
+        if (ride.getDriver() != null) {
+            ride.getDriver().setAvailable(true);
+        }
+        ride.setStatus(RideStatus.CANCELLED);
+        return RideResponse.from(ride);
+    }
 }
