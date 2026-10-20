@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -17,9 +18,15 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     List<Ride> findByDriverId(Long driverId);
     List<Ride> findByStatus(RideStatus status);
     boolean existsByDriverIdAndStatusIn(Long driverId, Collection<RideStatus> statuses);
+    List<Ride> findByRiderIdOrderByRequestedAtDesc(Long riderId);
+    List<Ride> findByDriverIdOrderByRequestedAtDesc(Long driverId);
+    long countByDriverIdAndStatus(Long driverId, RideStatus status);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM Ride r WHERE r.id = :id")
     Optional<Ride> findByIdForUpdate(@Param("id") Long id);
 
+
+    @Query("select sum(r.fare) from Ride r where r.driver.id = :driverId and r.status = com.cabbooking.entity.RideStatus.COMPLETED")
+    BigDecimal totalEarnings(@Param("driverId") Long driverId);
 }

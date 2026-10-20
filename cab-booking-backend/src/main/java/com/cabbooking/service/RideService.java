@@ -1,6 +1,7 @@
 package com.cabbooking.service;
 
 import com.cabbooking.dto.FareEstimateResponse;
+import com.cabbooking.dto.RideEvent;
 import com.cabbooking.dto.RideRequest;
 import com.cabbooking.dto.RideResponse;
 import com.cabbooking.entity.Ride;
@@ -9,10 +10,12 @@ import com.cabbooking.entity.User;
 import com.cabbooking.exception.ResourceNotFoundException;
 import com.cabbooking.repository.RideRepository;
 import com.cabbooking.repository.UserRepository;
+import com.cabbooking.websocket.RideNotifier;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,7 +26,7 @@ public class RideService {
         private final RideRepository rideRepository;
         private final FareService fareService;
         private final UserRepository userRepository;
-
+        private final RideNotifier notifier;
 
         public FareEstimateResponse estimate(RideRequest req){
             double km=fareService.distanceKm(req.pickupLat(), req.pickupLng(),req.dropLat(),req.dropLng());
@@ -50,7 +53,9 @@ public class RideService {
                     .build()
             );
 
-            return RideResponse.from(ride);
+            RideResponse response = RideResponse.from(ride);
+            notifier.newRideRequest(response);
+            return response;
 
 
         }
@@ -59,7 +64,7 @@ public class RideService {
         public List<RideResponse> myRides(String riderEmail){
             User rider=userRepository.findByEmail(riderEmail)
                     .orElseThrow(()->new ResourceNotFoundException("User with email "+riderEmail+" not found"));
-            return rideRepository.findByRiderId(rider.getId()).stream()
+            return rideRepository.findByRiderIdOrderByRequestedAtDesc(rider.getId()).stream()
                     .map(RideResponse::from)
                     .toList();
         }
@@ -93,6 +98,22 @@ public class RideService {
             ride.getDriver().setAvailable(true);
         }
         ride.setStatus(RideStatus.CANCELLED);
+        notifier.statusChanged(ride, "Ride cancelled by rider");
         return RideResponse.from(ride);
+    }
+
+
+    @Transactional(readOnly = true)
+    public RideEvent sos(String email, Long rideId) {
+        Ride ride = rideRepository.findById(rideId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ride not found"));
+        boolean isRider = ride.getRider().getEmail().equals(email);
+        boolean isDriver = ride.getDriver() != null
+                && ride.getDriver().getUser().getEmail().equals(email);
+        if (!isRider && !isDriver) {
+            throw new ResourceNotFoundException("Ride not found");
+        }
+        return new RideEvent("SOS", ride.getId(), ride.getStatus(),
+                "SOS alert raised by " + (isRider ? "rider" : "driver"), LocalDateTime.now());
     }
 }

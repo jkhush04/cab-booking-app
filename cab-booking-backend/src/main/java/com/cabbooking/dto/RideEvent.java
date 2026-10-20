@@ -1,4 +1,6 @@
 package com.cabbooking.dto;
 
-public class RideEvent {
-}
+import com.cabbooking.entity.RideStatus;
+import java.time.LocalDateTime;
+
+public record RideEvent(String type, Long rideId, RideStatus status, String message, LocalDateTime timestamp) {}

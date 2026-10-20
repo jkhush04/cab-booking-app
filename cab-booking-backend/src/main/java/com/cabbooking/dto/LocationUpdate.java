@@ -1,4 +1,3 @@
 package com.cabbooking.dto;
 
-public class LocationUpdate {
-}
+public record LocationUpdate(Long rideId, double lat, double lng) {}

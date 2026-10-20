@@ -52,4 +52,19 @@ public class DriverController {
     public RideResponse complete(@PathVariable Long id, Authentication auth) {
         return driverService.complete(auth.getName(), id);
     }
+
+    @GetMapping("/rides")
+    public List<RideResponse> history(Authentication auth) {
+        return driverService.myRides(auth.getName());
+    }
+
+    @GetMapping("/earnings")
+    public EarningsResponse earnings(Authentication auth) {
+        return driverService.earnings(auth.getName());
+    }
+
+    @GetMapping("/ratings")
+    public List<RatingResponse> ratings(Authentication auth) {
+        return driverService.myRatings(auth.getName());
+    }
 }
