@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h3>WebSocket Test</h3>
+<input id="token" placeholder="JWT token" size="60"><br>
+<input id="rideId" placeholder="Ride ID"><br>
+<label><input type="checkbox" id="isDriver"> I'm a driver</label><br>
+<button onclick="connect()">Connect + Subscribe</button>
+<button onclick="send('location', {lat: 23.2650, lng: 77.4120})">Send Location (driver)</button>
+<button onclick="send('arrived')">Arrived (driver)</button>
+<button onclick="send('sos')">SOS</button>
+<pre id="log"></pre>
+
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+<script>
+    let client;
+    const log = (m) => document.getElementById('log').textContent += m + '\n';
+
+    function connect() {
+      const id = document.getElementById('rideId').value;
+      client = new StompJs.Client({
+        brokerURL: 'ws://localhost:8080/ws',
+        connectHeaders: { Authorization: 'Bearer ' + document.getElementById('token').value },
+        onConnect: () => {
+          log('connected');
+          ['status', 'location', 'sos'].forEach(t =>
+            client.subscribe('/topic/ride/' + id + '/' + t, m => log(t + ': ' + m.body)));
+          client.subscribe('/user/queue/errors', m => log('ERROR: ' + m.body));
+          if (document.getElementById('isDriver').checked)
+  client.subscribe('/topic/drivers/requests', m => log('new ride: ' + m.body));
+        },
+        onStompError: (f) => log('stomp error: ' + f.headers['message'])
+      });
+      client.activate();
+    }
+
+    function send(action, body) {
+      const id = document.getElementById('rideId').value;
+      client.publish({ destination: '/app/ride/' + id + '/' + action, body: JSON.stringify(body || {}) });
+    }
+</script>
+</body>
+</html>
