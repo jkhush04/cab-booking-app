@@ -25,5 +25,11 @@ public class RideNotifier {
         template.convertAndSend("/topic/drivers/requests", ride);
     }
 
+    public void paymentSucceeded(Ride ride) {
+        RideEvent event = new RideEvent("PAYMENT_SUCCESS", ride.getId(),
+                ride.getStatus(), "Payment received", LocalDateTime.now());
+        template.convertAndSend("/topic/ride/" + ride.getId() + "/status", event);
+    }
+
 
 }
