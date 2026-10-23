@@ -188,6 +188,11 @@ public class DriverService {
                 .map(RatingResponse::from)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public DriverProfileResponse profile(String email) {
+        return DriverProfileResponse.from(getDriver(email));
+    }
     }
 
 

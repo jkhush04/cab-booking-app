@@ -53,6 +53,10 @@ public class PaymentService {
                 throw new IllegalArgumentException("Ride already paid");
             }
             PaymentIntent intent = PaymentIntent.retrieve(payment.getStripePaymentIntentId());
+            if ("succeeded".equals(intent.getStatus())) {
+                markSucceeded(intent.getId());
+                throw new IllegalArgumentException("Ride already paid");
+            }
             return toResponse(payment, intent);
         }
 

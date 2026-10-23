@@ -14,7 +14,11 @@ public record RideResponse (
         double distanceKm,
         BigDecimal fare,
         String driverName,
-        LocalDateTime requestedAt
+        LocalDateTime requestedAt,
+        double pickupLat,
+        double pickupLng,
+        double dropLat,
+        double dropLng
 ){
 
     public static RideResponse from(Ride r){
@@ -26,7 +30,11 @@ public record RideResponse (
                 r.getDistanceKm(),
                 r.getFare(),
                 r.getDriver() != null ? r.getDriver().getUser().getName() : null,
-                r.getRequestedAt()
+                r.getRequestedAt(),
+                r.getPickupLat(),
+                r.getPickupLng(),
+                r.getDropLat(),
+                r.getDropLng()
         );
     }
 }

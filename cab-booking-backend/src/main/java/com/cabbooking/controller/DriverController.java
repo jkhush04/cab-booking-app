@@ -67,4 +67,9 @@ public class DriverController {
     public List<RatingResponse> ratings(Authentication auth) {
         return driverService.myRatings(auth.getName());
     }
+
+    @GetMapping("/me")
+    public DriverProfileResponse me(Authentication auth) {
+        return driverService.profile(auth.getName());
+    }
 }

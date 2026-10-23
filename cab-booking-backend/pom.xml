@@ -11,9 +11,9 @@
 	<groupId>com.cabbooking</groupId>
 	<artifactId>cab-booking</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
+	<name>Cab Booking</name>
+	<description>Cab Booking Application</description>
+	<url>https://github.com/cab-booking</url>
 	<licenses>
 		<license/>
 	</licenses>
@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+
 	</properties>
 	<dependencies>
 		<dependency>
